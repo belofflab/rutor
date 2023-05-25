@@ -24,7 +24,7 @@ async def parse_files(session: Session) -> Optional[str]:
     return files 
 
 async def parse_information(session: Session) -> dict:
-    MOVIE_DETAILS_SELECTOR = 'table#details > tbody > tr > td:nth-child(2)'
+    MOVIE_DETAILS_SELECTOR = 'table#details > tbody > tr > td > span'
     accessing_information = {
         'название': 'name', 
         'оригинальное название': 'init_name',
@@ -32,7 +32,7 @@ async def parse_information(session: Session) -> dict:
         'жанр': 'genre',
         'режиссер': 'producer',
         'в ролях': 'cast',
-        'о фильме': 'about',
+        'о фильме:': 'about',
         'страна': 'country',
         'студия': 'studio',
         'формат': 'format',
@@ -54,6 +54,7 @@ async def parse_information(session: Session) -> dict:
             continue
         except IndexError:
             continue
+    collected_data['description'] = movie_details.select_one('font').text if movie_details.select_one('font') is not None else '-'
     image = movie_details.select_one('img').attrs.get('src')
     collected_data['image'] = image
     collected_data['download_file'] = download_file
