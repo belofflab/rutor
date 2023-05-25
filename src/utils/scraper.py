@@ -11,18 +11,9 @@ from bs4 import BeautifulSoup
 
 
 async def parse_files(session: Session) -> Optional[str]:
-    WATCH_TORRENT_FILES_XPATH = '//*[@id="details"]/tbody/tr[{}]/td[1]/span/u'
-    WATCH_TORRENT_FILES_TIMEOUT = 2
     WATCH_TORRENT_FILES_FILELIST = 'tbody#filelist > tr > td'
     try:
-        soup = BeautifulSoup(await session.get_page_source(), 'lxml')
-        xpath_len = soup.select('table#details > tbody > tr')
-        files = await session.get_element(
-            selector=WATCH_TORRENT_FILES_XPATH.format(len(xpath_len)),
-            selector_type=SelectorType.xpath
-            )
-        await files.click()
-        await asyncio.sleep(WATCH_TORRENT_FILES_TIMEOUT)
+        await session.execute_script("""if(filelist_already_loaded==0){filelist_already_loaded=1;$('#filelist').load('/descriptions/925948.files');}toggle_visibility('displayfiles');""")
         files = await session.get_element(
             selector=WATCH_TORRENT_FILES_FILELIST,
             selector_type=SelectorType.css_selector
@@ -50,7 +41,7 @@ async def parse_information(session: Session) -> dict:
     collected_data = {}
     page_source = await session.get_page_source()
     soup = BeautifulSoup(page_source, 'lxml')
-    download_file = soup.select_one('div#download > a:nth-child(2)').attrs.get('href')
+    download_file = soup.select_one('div#download > a:nth-child(2)').attrs.get('href') if soup.select_one('div#download > a:nth-child(2)') is not None else '-'
     movie_details = soup.select_one(selector=MOVIE_DETAILS_SELECTOR)
     movie_data = movie_details.get_text().splitlines()
     for data in movie_data:
@@ -70,15 +61,15 @@ async def parse_information(session: Session) -> dict:
 
 async def scrape_rutor(session: Session, url: str) -> Optional[dict]:
     await session.get(url)
-    file = await parse_files(session)
+    # file = await parse_files(session)
     collected_data = await parse_information(session)
-    collected_data['file'] = file  if file is not None else ''
+    # collected_data['file'] = file  if file is not None else ''
     return collected_data
 
 async def start_scrape_rutor(url: str) -> dict:
     async with get_session(
         Remote(
-            url='http://selenium:4444'
+            url='http://selenium:4444/wd/hub'
         ), Chrome()) as session:
         return await scrape_rutor(session, url=url)
 
