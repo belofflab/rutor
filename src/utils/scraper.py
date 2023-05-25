@@ -55,8 +55,7 @@ async def parse_information(session: Session) -> dict:
         except IndexError:
             continue
     collected_data['description'] = movie_details.select_one('font').text if movie_details.select_one('font') is not None else '-'
-    image = [image.attrs.get('src') for image in movie_details.select('img') if 'fastpic' in image.attrs.get('src')][0]
-    print(image)
+    image = [image.attrs.get('src') for image in movie_details.select('img') if 'fastpic' in image.attrs.get('src')][-1]
     collected_data['image'] = image
     collected_data['download_file'] = download_file
     return collected_data
