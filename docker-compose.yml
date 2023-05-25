@@ -9,6 +9,8 @@ services:
     ports:
       - "8081:8080"
     restart: unless-stopped
+    depends_on:
+      - selenium
 
   selenium:
     image: selenium/standalone-chrome
